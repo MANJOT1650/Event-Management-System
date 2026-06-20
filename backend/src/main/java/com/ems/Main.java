@@ -52,7 +52,12 @@ public class Main {
 
         // Start Javalin app
         Javalin app = Javalin.create(config -> {
-            config.staticFiles.add("../frontend", Location.EXTERNAL); // Serve frontend static files
+            config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()));
+            try {
+                config.staticFiles.add("../frontend", Location.EXTERNAL); // Serve frontend static files locally
+            } catch (Exception e) {
+                System.out.println("Frontend directory not found, serving API only.");
+            }
             config.router.apiBuilder(() -> {
                 path("/api", () -> {
                     path("/auth", () -> {
