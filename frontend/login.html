@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - EMS</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            justify-content: center;
+            align-items: center;
+            background-color: var(--md-sys-color-surface-variant);
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 32px;
+            text-align: center;
+        }
+        .auth-logo {
+            font-size: 48px;
+            color: var(--md-sys-color-primary);
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <button class="md-btn md-btn-text" style="position: absolute; top: 16px; right: 16px; color: var(--md-sys-color-primary);" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <span class="material-icons">dark_mode</span>
+    </button>
+    <div class="md-card auth-card">
+        <span class="material-icons auth-logo">event</span>
+        <h2>Welcome Back</h2>
+        <p class="mb-1" style="color: var(--md-sys-color-on-surface-variant)">Sign in to your account</p>
+        
+        <form id="loginForm">
+            <div class="md-input-container">
+                <input type="email" id="email" class="md-input" placeholder=" " required>
+                <label for="email" class="md-label">Email</label>
+            </div>
+            
+            <div class="md-input-container">
+                <input type="password" id="password" class="md-input" placeholder=" " required>
+                <label for="password" class="md-label">Password</label>
+            </div>
+            
+            <button type="submit" class="md-btn md-btn-primary w-100" style="padding: 12px; font-size: 16px;">
+                Login
+            </button>
+        </form>
+        
+        <div class="mt-1">
+            <span style="color: var(--md-sys-color-on-surface-variant)">Don't have an account?</span>
+            <a href="register.html">Sign Up</a>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        // Clear any existing session when landing on login page
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const res = await api.post('/auth/login', { email, password });
+                localStorage.setItem('token', res.token);
+                localStorage.setItem('user', JSON.stringify({
+                    id: res.userId,
+                    name: res.name,
+                    role: res.role
+                }));
+                showSnackbar('Login successful!');
+                setTimeout(() => window.location.href = 'dashboard.html', 1000);
+            } catch (err) {
+                // Handled by api.js
+            }
+        });
+    </script>
+</body>
+</html>

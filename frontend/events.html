@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - EMS</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="main-content">
+            <div class="d-flex justify-between align-center mb-1">
+                <h1>Events</h1>
+                <button id="btn-create-event" class="md-btn md-btn-primary hidden" onclick="openEventModal()">
+                    <span class="material-icons">add</span> Create Event
+                </button>
+            </div>
+            
+            <div id="events-grid" class="d-flex" style="flex-wrap: wrap; gap: 20px;">
+                <!-- Events will be loaded here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Event Modal (Simplified for brevity) -->
+    <div id="eventModal" class="hidden" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+        <div class="md-card" style="width: 500px; max-height: 90vh; overflow-y: auto;">
+            <div class="d-flex justify-between align-center mb-1">
+                <h1 id="modal-title" style="margin-top: 0;">Create Event</h1>
+                <button class="md-btn md-btn-text" onclick="closeEventModal()"><span class="material-icons">close</span></button>
+            </div>
+            <form id="eventForm">
+                <div class="md-input-container">
+                    <input type="text" id="ev-title" class="md-input" required placeholder=" ">
+                    <label class="md-label">Title</label>
+                </div>
+                <div class="md-input-container">
+                    <textarea id="ev-description" class="md-input" required rows="2" placeholder=" " style="resize: vertical;"></textarea>
+                    <label class="md-label">Description</label>
+                </div>
+                <div class="md-input-container">
+                    <input type="date" id="ev-date" class="md-input" required>
+                    <label class="md-label" style="top:4px; font-size:12px; color:var(--md-sys-color-primary)">Date</label>
+                </div>
+                <div class="md-input-container" style="text-align: left;">
+                    <label for="ev-time-slot" style="font-size: 12px; color: var(--md-sys-color-primary); display: block; margin-bottom: 4px;">Time Slot</label>
+                    <select id="ev-time-slot" class="md-input" required>
+                        <option value="">Select a time slot...</option>
+                        <option value="morning">Morning (09:00 AM - 12:00 PM)</option>
+                        <option value="evening">Evening (01:00 PM - 04:00 PM)</option>
+                    </select>
+                </div>
+                <div class="md-input-container">
+                    <input type="number" id="ev-capacity" class="md-input" required>
+                    <label class="md-label" style="top:4px; font-size:12px; color:var(--md-sys-color-primary)">Capacity</label>
+                </div>
+                <div class="md-input-container" style="text-align: left;">
+                    <label for="ev-venue" style="font-size: 12px; color: var(--md-sys-color-primary); display: block; margin-bottom: 4px;">Venue</label>
+                    <select id="ev-venue" class="md-input" required>
+                        <option value="">Loading venues...</option>
+                    </select>
+                </div>
+                <div class="md-input-container" style="text-align: left;">
+                    <label for="ev-category" style="font-size: 12px; color: var(--md-sys-color-primary); display: block; margin-bottom: 4px;">Category</label>
+                    <select id="ev-category" class="md-input" required>
+                        <option value="">Loading categories...</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="md-btn md-btn-primary w-100 mt-1">Save Event</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Attendance Modal -->
+    <div id="attendanceModal" class="hidden" style="position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; justify-content: center; align-items: center;">
+        <div class="md-card flex-column" style="width: 600px; max-height: 90vh; display: flex;">
+            <div class="d-flex justify-between align-center mb-1" style="flex-shrink: 0;">
+                <h2 id="attendance-modal-title" style="margin-top: 0; margin-bottom: 0;">Manage Attendance</h2>
+                <button class="md-btn md-btn-text" onclick="closeAttendanceModal()"><span class="material-icons">close</span></button>
+            </div>
+            <div style="overflow-y: auto; flex: 1;">
+                <table class="w-100" style="text-align: left; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--md-sys-color-surface-variant);">
+                            <th style="padding: 8px;">Name</th>
+                            <th style="padding: 8px;">Email</th>
+                            <th style="padding: 8px;">Status</th>
+                            <th style="padding: 8px; text-align:right;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendance-list">
+                        <!-- Loading Participants... -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        let user;
+        document.addEventListener('DOMContentLoaded', async () => {
+            user = checkAuth();
+            if (!user) return;
+
+            await loadComponent('navbar-placeholder', 'components/navbar.html');
+            await loadComponent('sidebar-placeholder', 'components/sidebar.html');
+            
+            document.getElementById('nav-username').textContent = user.name;
+            if (user.role === 'ADMIN') {
+                document.getElementById('menu-admin').classList.remove('hidden');
+            }
+            if (user.role === 'ADMIN' || user.role === 'COORDINATOR') {
+                document.getElementById('btn-create-event').classList.remove('hidden');
+                loadFormOptions();
+            }
+            if (user.role === 'PARTICIPANT') {
+                document.getElementById('menu-history').classList.remove('hidden');
+            }
+
+            loadEvents();
+        });
+
+        async function loadFormOptions() {
+            try {
+                const venues = await api.get('/venues');
+                const categories = await api.get('/categories');
+                
+                const venueSelect = document.getElementById('ev-venue');
+                venueSelect.innerHTML = venues.map(v => `<option value="${v.venueId}">${v.venueName}</option>`).join('');
+                if(venues.length === 0) venueSelect.innerHTML = `<option value="">No venues available</option>`;
+                
+                const categorySelect = document.getElementById('ev-category');
+                categorySelect.innerHTML = categories.map(c => `<option value="${c.categoryId}">${c.categoryName}</option>`).join('');
+                if(categories.length === 0) categorySelect.innerHTML = `<option value="">No categories available</option>`;
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadComponent(id, file) {
+            try {
+                const response = await fetch(file);
+                document.getElementById(id).innerHTML = await response.text();
+            } catch (err) { console.error(err); }
+        }
+
+        let editingEventId = null;
+        let globalEvents = [];
+        let myRegisteredEventIds = [];
+
+        async function loadEvents() {
+            try {
+                if (checkAuth() && JSON.parse(localStorage.getItem('user')).role === 'PARTICIPANT') {
+                    try {
+                        const history = await api.get('/dashboard/history');
+                        myRegisteredEventIds = history.map(h => h.eventId);
+                    } catch(e) {}
+                }
+
+                globalEvents = await api.get('/events');
+                renderEvents(globalEvents);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderEvents(events) {
+            const container = document.getElementById('events-grid');
+            container.innerHTML = '';
+
+            events.forEach(e => {
+                const user = JSON.parse(localStorage.getItem('user'));
+                const isRegistered = myRegisteredEventIds.includes(e.eventId);
+
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                const eventDate = new Date(e.eventDate);
+                eventDate.setHours(0,0,0,0);
+                const displayStatus = (e.status === 'LIVE' && eventDate > today) ? 'UPCOMING' : e.status;
+
+                const card = document.createElement('div');
+                card.className = 'md-card d-flex flex-column';
+                card.style.position = 'relative';
+                card.style.width = '300px';
+                card.innerHTML = `
+                    <div style="position:absolute; top:16px; right:16px; background:var(--md-sys-color-primary); color:white; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold;">
+                        ${displayStatus}
+                    </div>
+                    <h2 style="margin-top:0; margin-bottom:8px; font-size: 20px; padding-right: 70px;">${e.title}</h2>
+                    <p style="color: var(--md-sys-color-on-surface-variant); margin-top:0; flex:1;">${e.description}</p>
+                    <div style="margin-top: 16px; margin-bottom: 24px;">
+                        <p style="color: var(--md-sys-color-on-surface-variant); margin: 4px 0;">
+                            <span class="material-icons" style="font-size:16px; vertical-align:middle;">event</span> ${new Date(e.eventDate).toLocaleDateString()} &nbsp;
+                            <span class="material-icons" style="font-size:16px; vertical-align:middle;">schedule</span> ${e.startTime} - ${e.endTime}
+                        </p>
+                        <p style="color: var(--md-sys-color-on-surface-variant); margin: 4px 0;">
+                            <span class="material-icons" style="font-size:16px; vertical-align:middle;">group</span> ${e.currentRegistrations} / ${e.capacity}
+                        </p>
+                    </div>
+                    <div style="margin-top: auto; display: flex; gap: 8px;">
+                        ${user.role === 'PARTICIPANT' ? (
+                            isRegistered 
+                                ? '<button class="md-btn md-btn-text" style="flex:1; color: var(--md-sys-color-error);" onclick="unregisterEvent(' + e.eventId + ')">Unregister</button>'
+                                : '<button class="md-btn md-btn-primary" style="flex:1;" onclick="registerEvent(' + e.eventId + ')">Register</button>'
+                        ) : `
+                            <button class="md-btn md-btn-text" style="padding:0; min-width:40px; color:var(--md-sys-color-primary);" onclick="openAttendanceModal(${e.eventId}, '${e.title}')" title="Manage Attendance"><span class="material-icons">check_circle</span></button>
+                            <button class="md-btn md-btn-tonal" style="flex:1; padding:0;" onclick="editEvent(${e.eventId})">Edit</button>
+                            <button class="md-btn md-btn-tonal" style="flex:1; padding:0;" onclick="endEvent(${e.eventId})">End</button>
+                            ${user.role === 'ADMIN' ? `<button class="md-btn md-btn-text" style="padding:0; min-width:40px; color:var(--md-sys-color-error);" onclick="deleteEvent(${e.eventId})"><span class="material-icons">delete</span></button>` : ''}
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function openEventModal() {
+            if (editingEventId === null) {
+                document.getElementById('modal-title').textContent = 'Create Event';
+                document.getElementById('eventForm').reset();
+            }
+            document.getElementById('eventModal').classList.remove('hidden');
+        }
+
+        function closeEventModal() {
+            document.getElementById('eventModal').classList.add('hidden');
+            editingEventId = null;
+        }
+
+        window.editEvent = function(id) {
+            const ev = globalEvents.find(e => e.eventId === id);
+            if (!ev) return;
+            
+            editingEventId = id;
+            document.getElementById('modal-title').textContent = 'Edit Event';
+            document.getElementById('ev-title').value = ev.title;
+            document.getElementById('ev-description').value = ev.description;
+            
+            const d = new Date(ev.eventDate);
+            const dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            document.getElementById('ev-date').value = dateStr;
+            
+            document.getElementById('ev-capacity').value = ev.capacity;
+            
+            if (ev.startTime.startsWith('09:00')) {
+                document.getElementById('ev-time-slot').value = 'morning';
+            } else {
+                document.getElementById('ev-time-slot').value = 'evening';
+            }
+            
+            setTimeout(() => {
+                document.getElementById('ev-venue').value = ev.venueId;
+                document.getElementById('ev-category').value = ev.categoryId;
+            }, 100);
+            
+            openEventModal();
+        }
+
+        document.getElementById('eventForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const slot = document.getElementById('ev-time-slot').value;
+            let startTime, endTime;
+            if (slot === 'morning') {
+                startTime = "09:00:00";
+                endTime = "12:00:00";
+            } else {
+                startTime = "13:00:00";
+                endTime = "16:00:00";
+            }
+
+            const eventData = {
+                title: document.getElementById('ev-title').value,
+                description: document.getElementById('ev-description').value,
+                eventDate: document.getElementById('ev-date').value,
+                startTime: startTime,
+                endTime: endTime,
+                capacity: parseInt(document.getElementById('ev-capacity').value),
+                venueId: parseInt(document.getElementById('ev-venue').value),
+                categoryId: parseInt(document.getElementById('ev-category').value)
+            };
+            try {
+                if (editingEventId) {
+                    await api.put(`/events/${editingEventId}`, eventData);
+                    showSnackbar('Event updated successfully');
+                } else {
+                    await api.post('/events', eventData);
+                    showSnackbar('Event created successfully');
+                }
+                
+                closeEventModal();
+                loadEvents();
+            } catch (err) {}
+        });
+
+        window.registerEvent = async function(id) {
+            try {
+                await api.post(`/events/${id}/register`, {});
+                showSnackbar('Registered successfully!');
+                loadEvents();
+            } catch(e) {}
+        }
+
+        window.unregisterEvent = async function(id) {
+            if(confirm("Are you sure you want to unregister from this event?")) {
+                try {
+                    await api.delete(`/events/${id}/cancel`);
+                    showSnackbar('Unregistered successfully!');
+                    loadEvents();
+                } catch(e) {}
+            }
+        }
+        
+        window.endEvent = async function(id) {
+            if(confirm("Are you sure you want to end this event?")) {
+                try {
+                    await api.post(`/events/${id}/end`);
+                    showSnackbar('Event ended successfully');
+                    loadEvents();
+                } catch(e) {}
+            }
+        }
+
+        window.deleteEvent = async function(id) {
+            if(confirm("Are you sure you want to permanently delete this event?")) {
+                try {
+                    await api.delete(`/events/${id}`);
+                    showSnackbar('Event deleted');
+                    loadEvents();
+                } catch(e) {}
+            }
+        }
+
+        // --- Attendance Actions ---
+        let currentAttendanceEventId = null;
+
+        window.openAttendanceModal = async function(eventId, title) {
+            currentAttendanceEventId = eventId;
+            document.getElementById('attendance-modal-title').textContent = 'Attendance: ' + title;
+            document.getElementById('attendanceModal').classList.remove('hidden');
+            loadAttendanceData(eventId);
+        }
+
+        window.closeAttendanceModal = function() {
+            document.getElementById('attendanceModal').classList.add('hidden');
+            currentAttendanceEventId = null;
+        }
+
+        async function loadAttendanceData(eventId) {
+            const list = document.getElementById('attendance-list');
+            list.innerHTML = "<tr><td colspan='4' style='padding:8px;text-align:center;'>Loading...</td></tr>";
+            try {
+                const participants = await api.get(`/events/${eventId}/participants`);
+                if (participants.length === 0) {
+                    list.innerHTML = "<tr><td colspan='4' style='padding:8px;text-align:center;'>No participants registered yet.</td></tr>";
+                    return;
+                }
+                list.innerHTML = participants.map(p => `
+                    <tr style="border-bottom: 1px solid var(--md-sys-color-surface-variant);">
+                        <td style="padding: 8px;">${p.name}</td>
+                        <td style="padding: 8px;">${p.email}</td>
+                        <td style="padding: 8px;">
+                            <span style="padding:2px 6px; border-radius:4px; font-size:12px; 
+                                ${p.attendanceStatus === 'PRESENT' ? 'background:var(--md-sys-color-primary-container); color:var(--md-sys-color-on-primary-container)' : 
+                                  p.attendanceStatus === 'ABSENT' ? 'background:var(--md-sys-color-error); color:var(--md-sys-color-on-error)' : 
+                                  'background:var(--md-sys-color-surface-variant); color:var(--md-sys-color-on-surface-variant)'}">
+                                ${p.attendanceStatus}
+                            </span>
+                        </td>
+                        <td style="padding: 8px; text-align:right;">
+                            <button class="md-btn md-btn-text" style="padding:4px 8px; font-size:12px; min-width:auto; color:var(--md-sys-color-primary);" onclick="markAttendance(${eventId}, ${p.userId}, 'PRESENT')">Present</button>
+                            <button class="md-btn md-btn-text" style="padding:4px 8px; font-size:12px; min-width:auto; color:var(--md-sys-color-error);" onclick="markAttendance(${eventId}, ${p.userId}, 'ABSENT')">Absent</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                list.innerHTML = "<tr><td colspan='4' style='padding:8px;text-align:center;color:red;'>Failed to load participants.</td></tr>";
+            }
+        }
+
+        window.markAttendance = async function(eventId, participantId, status) {
+            try {
+                await api.post(`/events/${eventId}/attendance/${participantId}`, { status: status });
+                showSnackbar(`Marked ${status}`);
+                loadAttendanceData(eventId); // reload list
+            } catch (e) { }
+        }
+    </script>
+</body>
+</html>

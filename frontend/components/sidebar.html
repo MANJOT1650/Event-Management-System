@@ -1,0 +1,46 @@
+<!-- Sidebar Template -->
+<aside class="sidebar" style="width: 250px; background-color: var(--md-sys-color-surface); border-right: 1px solid var(--md-sys-color-surface-variant); padding: 24px 16px; height: 100%;">
+    <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 8px;">
+        <li>
+            <a href="/dashboard.html" class="sidebar-link md-btn md-btn-text w-100" style="justify-content: flex-start;">
+                <span class="material-icons">dashboard</span> Dashboard
+            </a>
+        </li>
+        <li>
+            <a href="/events.html" class="sidebar-link md-btn md-btn-text w-100" style="justify-content: flex-start;">
+                <span class="material-icons">event_note</span> Events
+            </a>
+        </li>
+        <li>
+            <a href="/calendar.html" class="sidebar-link md-btn md-btn-text w-100" style="justify-content: flex-start;">
+                <span class="material-icons">calendar_today</span> Calendar
+            </a>
+        </li>
+        <li id="menu-history" class="hidden">
+            <a href="/history.html" class="sidebar-link md-btn md-btn-text w-100" style="justify-content: flex-start;">
+                <span class="material-icons">history</span> History
+            </a>
+        </li>
+        <li id="menu-admin" class="hidden">
+            <a href="/admin.html" class="sidebar-link md-btn md-btn-text w-100" style="justify-content: flex-start;">
+                <span class="material-icons">admin_panel_settings</span> Admin
+            </a>
+        </li>
+        <li>
+            <a href="/settings.html" class="sidebar-link md-btn md-btn-text w-100" style="justify-content: flex-start;">
+                <span class="material-icons">settings</span> Settings
+            </a>
+        </li>
+    </ul>
+</aside>
+
+<style>
+    .sidebar-link {
+        border-radius: var(--border-radius-sm);
+        color: var(--md-sys-color-on-surface);
+    }
+    .sidebar-link:hover {
+        background-color: var(--md-sys-color-secondary-container);
+        color: var(--md-sys-color-on-secondary-container);
+    }
+</style>

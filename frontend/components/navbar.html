@@ -1,0 +1,44 @@
+<!-- Navbar Template to be loaded via JS -->
+<nav class="navbar md-card" style="border-radius: 0; padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;">
+    <div class="navbar-brand d-flex align-center" style="gap: 12px;">
+        <span class="material-icons" style="font-size: 32px; color: var(--md-sys-color-primary);">event</span>
+        <h2 style="margin: 0;">EMS</h2>
+    </div>
+    
+    <div class="navbar-actions d-flex align-center" style="gap: 16px;">
+        <span id="nav-username" style="font-weight: 500;">User</span>
+        <button class="md-btn md-btn-text" onclick="toggleTheme()" aria-label="Toggle Theme">
+            <span class="material-icons">brightness_6</span>
+        </button>
+        <div class="notification-container" style="position: relative;">
+            <button class="md-btn md-btn-text" onclick="toggleNotifications()" aria-label="Notifications">
+                <span class="material-icons">notifications</span>
+                <span id="nav-notif-badge" class="badge hidden" style="position: absolute; top: 0; right: 8px; background: red; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px;">0</span>
+            </button>
+            <div id="notification-dropdown" class="md-card hidden" style="position: absolute; right: 0; top: 48px; width: 300px; max-height: 400px; overflow-y: auto; z-index: 200;">
+                <h4 style="margin-bottom: 8px; border-bottom: 1px solid var(--md-sys-color-surface-variant); padding-bottom: 8px;">Notifications</h4>
+                <div id="notif-list">
+                    <!-- Notifications loaded here -->
+                </div>
+            </div>
+        </div>
+        <button class="md-btn md-btn-text" onclick="logout()" aria-label="Logout">
+            <span class="material-icons">logout</span>
+        </button>
+    </div>
+</nav>
+
+<style>
+    .notification-item {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--md-sys-color-surface-variant);
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .notification-item:hover {
+        background-color: var(--md-sys-color-surface-variant);
+    }
+    .notification-item.unread {
+        font-weight: bold;
+    }
+</style>

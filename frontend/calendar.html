@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendar - EMS</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FullCalendar -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <style>
+        .fc-event { cursor: pointer; }
+        .fc-theme-standard td, .fc-theme-standard th {
+            border-color: var(--md-sys-color-surface-variant);
+        }
+        .fc .fc-toolbar-title {
+            font-size: 1.25rem;
+            color: var(--md-sys-color-on-background);
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="main-content">
+            <h1>Event Calendar</h1>
+            <div class="md-card">
+                <div id="calendar"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = checkAuth();
+            if (!user) return;
+
+            await loadComponent('navbar-placeholder', 'components/navbar.html');
+            await loadComponent('sidebar-placeholder', 'components/sidebar.html');
+            
+            document.getElementById('nav-username').textContent = user.name;
+            if (user.role === 'ADMIN') {
+                document.getElementById('menu-admin').classList.remove('hidden');
+            }
+            if (user.role === 'PARTICIPANT') {
+                document.getElementById('menu-history').classList.remove('hidden');
+            }
+
+            initCalendar();
+        });
+
+        async function loadComponent(id, file) {
+            try {
+                const response = await fetch(file);
+                document.getElementById(id).innerHTML = await response.text();
+            } catch (err) { console.error(err); }
+        }
+
+        async function initCalendar() {
+            try {
+                const events = await api.get('/events');
+                const calendarEl = document.getElementById('calendar');
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    displayEventTime: false,
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    events: events.map(e => {
+                        const d = new Date(e.eventDate);
+                        const dateStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                        return {
+                            title: e.title,
+                            start: `${dateStr}T${e.startTime}`,
+                            end: `${dateStr}T${e.endTime}`,
+                            color: e.status === 'LIVE' ? 'green' : (e.status === 'PENDING_END' ? 'orange' : 'red'),
+                            extendedProps: { eventId: e.eventId }
+                        };
+                    }),
+                    eventClick: function(info) {
+                        window.location.href = `events.html?id=${info.event.extendedProps.eventId}`;
+                    }
+                });
+                calendar.render();
+            } catch(e) { console.error(e); }
+        }
+    </script>
+</body>
+</html>

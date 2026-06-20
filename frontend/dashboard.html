@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - EMS</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="main-content">
+            <h1 id="welcome-message">Dashboard</h1>
+            
+            <div id="admin-dashboard" class="hidden">
+                <div class="d-flex" style="gap: 20px; flex-wrap: wrap;">
+                    <!-- Stats Cards -->
+                    <div class="md-card" style="flex: 1; min-width: 200px;">
+                        <h3 style="color: var(--md-sys-color-on-surface-variant); font-size: 14px;">Total Events</h3>
+                        <p id="stat-total-events" style="font-size: 32px; font-weight: bold; color: var(--md-sys-color-primary);">0</p>
+                    </div>
+                    <div class="md-card" style="flex: 1; min-width: 200px;">
+                        <h3 style="color: var(--md-sys-color-on-surface-variant); font-size: 14px;">Total Registrations</h3>
+                        <p id="stat-total-reg" style="font-size: 32px; font-weight: bold; color: var(--md-sys-color-primary);">0</p>
+                    </div>
+                </div>
+
+                <div class="d-flex" style="gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+                    <div class="md-card" style="flex: 2; min-width: 400px;">
+                        <h3>Seat Occupancy</h3>
+                        <canvas id="occupancyChart"></canvas>
+                    </div>
+                    <div class="md-card" style="flex: 1; min-width: 300px;">
+                        <h3>Audit Logs</h3>
+                        <div id="audit-logs-container" style="max-height: 300px; overflow-y: auto;">
+                            <!-- Logs here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="participant-dashboard" class="hidden">
+                <h2>Events Explorer</h2>
+                <div id="upcoming-events-container" class="d-flex" style="gap: 20px; flex-wrap: wrap;">
+                    <!-- Events here -->
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = checkAuth();
+            if (!user) return;
+
+            // Load components
+            await loadComponent('navbar-placeholder', 'components/navbar.html');
+            await loadComponent('sidebar-placeholder', 'components/sidebar.html');
+
+            document.getElementById('nav-username').textContent = user.name;
+            document.getElementById('welcome-message').textContent = `Welcome, ${user.name}`;
+
+            if (user.role === 'ADMIN') {
+                document.getElementById('menu-admin').classList.remove('hidden');
+            }
+            if (user.role === 'PARTICIPANT') {
+                document.getElementById('menu-history').classList.remove('hidden');
+            }
+
+            if (user.role === 'ADMIN') {
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                loadAdminDashboard();
+            } else {
+                document.getElementById('participant-dashboard').classList.remove('hidden');
+                loadParticipantDashboard();
+            }
+        });
+
+        async function loadComponent(id, file) {
+            try {
+                const response = await fetch(file);
+                const html = await response.text();
+                document.getElementById(id).innerHTML = html;
+            } catch (err) {
+                console.error(`Error loading ${file}:`, err);
+            }
+        }
+
+        async function loadAdminDashboard() {
+            try {
+                const stats = await api.get('/dashboard/statistics');
+                const logs = await api.get('/dashboard/audit-logs');
+                
+                document.getElementById('stat-total-events').textContent = stats.length;
+                let totalReg = 0;
+                stats.forEach(s => totalReg += s.currentRegistrations);
+                document.getElementById('stat-total-reg').textContent = totalReg;
+
+                // Render Chart
+                const ctx = document.getElementById('occupancyChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: stats.map(s => s.title.substring(0, 15) + '...'),
+                        datasets: [{
+                            label: 'Registrations',
+                            data: stats.map(s => s.currentRegistrations),
+                            backgroundColor: 'rgba(0, 97, 164, 0.7)',
+                            borderColor: 'rgba(0, 97, 164, 1)',
+                            borderWidth: 1
+                        }, {
+                            label: 'Available Seats',
+                            data: stats.map(s => s.availableSeats),
+                            backgroundColor: 'rgba(209, 228, 255, 0.7)',
+                            borderColor: 'rgba(209, 228, 255, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { scales: { y: { beginAtZero: true } } }
+                });
+
+                // Render Logs
+                const logContainer = document.getElementById('audit-logs-container');
+                logContainer.innerHTML = logs.map(l => `
+                    <div style="padding: 8px; border-bottom: 1px solid var(--md-sys-color-surface-variant);">
+                        <strong>${l.action}</strong> on ${l.tableName} (ID: ${l.recordId})<br>
+                        <small style="color: var(--md-sys-color-on-surface-variant);">${new Date(l.timestamp).toLocaleString()} ${l.userName ? `- by <b>${l.userName}</b>` : ''}</small>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error("Dashboard error:", error);
+            }
+        }
+
+        async function loadParticipantDashboard() {
+            try {
+                const events = await api.get('/events');
+                const liveEvents = events.filter(e => e.status === 'LIVE').slice(0, 3);
+                
+                const container = document.getElementById('upcoming-events-container');
+                container.innerHTML = liveEvents.map(e => {
+                    const today = new Date();
+                    today.setHours(0,0,0,0);
+                    const eventDate = new Date(e.eventDate);
+                    eventDate.setHours(0,0,0,0);
+                    const displayStatus = (e.status === 'LIVE' && eventDate > today) ? 'UPCOMING' : e.status;
+
+                    return `
+                    <div class="md-card d-flex flex-column" style="width: 300px; cursor: pointer; position: relative;" onclick="window.location.href='events.html?id=${e.eventId}'">
+                        <div style="position:absolute; top:16px; right:16px; background:var(--md-sys-color-primary); color:white; padding:4px 8px; border-radius:12px; font-size:12px; font-weight:bold;">
+                            ${displayStatus}
+                        </div>
+                        <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px; padding-right: 70px;">${e.title}</h3>
+                        <p style="color: var(--md-sys-color-on-surface-variant); margin: 0 0 8px 0; font-size: 14px;">
+                            <span class="material-icons" style="font-size: 16px; vertical-align: middle;">calendar_today</span> ${new Date(e.eventDate).toLocaleDateString()}
+                        </p>
+                        <p style="color: var(--md-sys-color-on-surface-variant); margin: 0 0 16px 0; font-size: 14px; flex: 1;">
+                            ${e.description}
+                        </p>
+                        <div style="margin-top: auto;">
+                            <span style="background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
+                                <span class="material-icons" style="font-size: 14px; vertical-align: middle;">group</span> ${e.currentRegistrations} / ${e.capacity} Registered
+                            </span>
+                        </div>
+                    </div>
+                `}).join('');
+                if (liveEvents.length === 0) {
+                    container.innerHTML = "<p>No upcoming events available right now.</p>";
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Notification Toggle (global scope for navbar component)
+        window.toggleNotifications = async function() {
+            const dropdown = document.getElementById('notification-dropdown');
+            dropdown.classList.toggle('hidden');
+            if (!dropdown.classList.contains('hidden')) {
+                try {
+                    const notifs = await api.get('/notifications');
+                    const notifList = document.getElementById('notif-list');
+                    notifList.innerHTML = notifs.map(n => `
+                        <div class="notification-item ${!n.read ? 'unread' : ''}" onclick="markNotifRead(${n.notificationId})">
+                            ${n.message}
+                            <div style="font-size: 10px; color: gray;">${new Date(n.createdAt).toLocaleString()}</div>
+                        </div>
+                    `).join('');
+                    if (notifs.length === 0) notifList.innerHTML = "<div style='padding: 8px'>No notifications</div>";
+                    
+                    const unreadCount = notifs.filter(n => !n.read).length;
+                    const badge = document.getElementById('nav-notif-badge');
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                } catch(e) {}
+            }
+        }
+
+        window.markNotifRead = async function(id) {
+            try {
+                await api.put(`/notifications/${id}/read`);
+                window.toggleNotifications(); // refresh
+                window.toggleNotifications(); // close/open logic simplification
+            } catch(e) {}
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - EMS</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+        
+        <main class="main-content">
+            <h1>Participant History</h1>
+            <div class="md-card">
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--md-sys-color-surface-variant);">
+                            <th style="padding: 12px;">Event Title</th>
+                            <th style="padding: 12px;">Date</th>
+                            <th style="padding: 12px;">Status</th>
+                            <th style="padding: 12px;">Registered At</th>
+                            <th style="padding: 12px;">Attendance</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-tbody">
+                        <!-- History injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = checkAuth(['PARTICIPANT']);
+            if (!user) return;
+
+            await loadComponent('navbar-placeholder', 'components/navbar.html');
+            await loadComponent('sidebar-placeholder', 'components/sidebar.html');
+            
+            document.getElementById('nav-username').textContent = user.name;
+            document.getElementById('menu-history').classList.remove('hidden');
+
+            loadHistory();
+        });
+
+        async function loadComponent(id, file) {
+            try {
+                const response = await fetch(file);
+                document.getElementById(id).innerHTML = await response.text();
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadHistory() {
+            try {
+                const history = await api.get('/dashboard/history');
+                const tbody = document.getElementById('history-tbody');
+                tbody.innerHTML = history.map(h => `
+                    <tr style="border-bottom: 1px solid var(--md-sys-color-surface-variant);">
+                        <td style="padding: 12px;">${h.title}</td>
+                        <td style="padding: 12px;">${new Date(h.eventDate).toLocaleDateString()}</td>
+                        <td style="padding: 12px;">
+                            <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${h.eventStatus === 'LIVE' ? 'var(--md-sys-color-primary-container)' : 'var(--md-sys-color-error)'}; color: ${h.eventStatus === 'LIVE' ? 'var(--md-sys-color-on-primary-container)' : 'var(--md-sys-color-on-error)'};">
+                                ${h.eventStatus}
+                            </span>
+                        </td>
+                        <td style="padding: 12px;">${new Date(h.registeredAt).toLocaleString()}</td>
+                        <td style="padding: 12px;">${h.attendanceStatus || 'Pending'}</td>
+                    </tr>
+                `).join('');
+                if (history.length === 0) {
+                    tbody.innerHTML = "<tr><td colspan='5' style='padding:12px;text-align:center;'>No history found</td></tr>";
+                }
+            } catch (e) { console.error(e); }
+        }
+    </script>
+</body>
+</html>

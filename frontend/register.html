@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - EMS</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            justify-content: center;
+            align-items: center;
+            background-color: var(--md-sys-color-surface-variant);
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 450px;
+            padding: 32px;
+            text-align: center;
+        }
+        .auth-logo {
+            font-size: 48px;
+            color: var(--md-sys-color-primary);
+            margin-bottom: 16px;
+        }
+        select.md-input {
+            appearance: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button class="md-btn md-btn-text" style="position: absolute; top: 16px; right: 16px; color: var(--md-sys-color-primary);" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <span class="material-icons">dark_mode</span>
+    </button>
+    <div class="md-card auth-card">
+        <span class="material-icons auth-logo">person_add</span>
+        <h2>Create an Account</h2>
+        <p class="mb-1" style="color: var(--md-sys-color-on-surface-variant)">Join our event management system</p>
+        
+        <form id="registerForm">
+            <div class="md-input-container">
+                <input type="text" id="name" class="md-input" placeholder=" " required>
+                <label for="name" class="md-label">Full Name</label>
+            </div>
+
+            <div class="md-input-container">
+                <input type="email" id="email" class="md-input" placeholder=" " required>
+                <label for="email" class="md-label">Email</label>
+            </div>
+            
+            <div class="md-input-container">
+                <input type="password" id="password" class="md-input" placeholder=" " required>
+                <label for="password" class="md-label">Password</label>
+            </div>
+
+            <div class="md-input-container" style="text-align: left;">
+                <label for="role" style="font-size: 12px; color: var(--md-sys-color-primary); display: block; margin-bottom: 4px;">Role</label>
+                <select id="role" class="md-input" required>
+                    <option value="PARTICIPANT">Participant</option>
+                    <option value="COORDINATOR">Event Coordinator</option>
+                    <option value="ADMIN">Admin</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="md-btn md-btn-primary w-100" style="padding: 12px; font-size: 16px; margin-top: 16px;">
+                Sign Up
+            </button>
+        </form>
+        
+        <div class="mt-1">
+            <span style="color: var(--md-sys-color-on-surface-variant)">Already have an account?</span>
+            <a href="login.html">Login</a>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            
+            try {
+                await api.post('/auth/register', { name, email, password, role });
+                showSnackbar('Registration successful! Please log in.');
+                setTimeout(() => window.location.href = 'login.html', 1500);
+            } catch (err) {
+                // Handled by api.js
+            }
+        });
+    </script>
+</body>
+</html>
