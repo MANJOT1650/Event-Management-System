@@ -5,30 +5,30 @@
     --md-sys-color-on-primary: #ffffff;
     --md-sys-color-primary-container: #e0e0e0;
     --md-sys-color-on-primary-container: #000000;
-    
+
     --md-sys-color-secondary: #555555;
     --md-sys-color-on-secondary: #ffffff;
     --md-sys-color-secondary-container: #f5f5f5;
     --md-sys-color-on-secondary-container: #121212;
-    
+
     --md-sys-color-background: #ffffff;
     --md-sys-color-on-background: #111111;
     --md-sys-color-surface: #ffffff;
     --md-sys-color-on-surface: #111111;
     --md-sys-color-surface-variant: #f2f2f2;
     --md-sys-color-on-surface-variant: #555555;
-    
+
     --md-sys-color-error: #d32f2f;
     --md-sys-color-on-error: #ffffff;
-    
+
     /* Soft, diffused elevations */
     --md-sys-elevation-1: 0 8px 30px rgba(0, 0, 0, 0.04);
     --md-sys-elevation-2: 0 12px 40px rgba(0, 0, 0, 0.08);
-    
+
     --border-radius-sm: 10px;
     --border-radius-md: 20px;
     --border-radius-lg: 28px;
-    
+
     --transition-speed: 0.3s;
 }
 
@@ -38,19 +38,19 @@
     --md-sys-color-on-primary: #0a0a0a;
     --md-sys-color-primary-container: #333333;
     --md-sys-color-on-primary-container: #ffffff;
-    
+
     --md-sys-color-secondary: #a0a0a0;
     --md-sys-color-on-secondary: #0a0a0a;
     --md-sys-color-secondary-container: #222222;
     --md-sys-color-on-secondary-container: #eeeeee;
-    
+
     --md-sys-color-background: #050505;
     --md-sys-color-on-background: #f5f5f5;
     --md-sys-color-surface: #0a0a0a;
     --md-sys-color-on-surface: #f5f5f5;
     --md-sys-color-surface-variant: #1a1a1a;
     --md-sys-color-on-surface-variant: #aaaaaa;
-    
+
     --md-sys-color-error: #ef5350;
     --md-sys-color-on-error: #ffffff;
 
@@ -77,7 +77,12 @@ body {
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-weight: 600;
     margin-bottom: 1rem;
     letter-spacing: -0.03em;
@@ -217,9 +222,9 @@ a:hover {
     transition: 0.2s ease all;
 }
 
-.md-input:focus ~ .md-label,
-.md-input:not(:placeholder-shown) ~ .md-label,
-.md-input:-webkit-autofill ~ .md-label {
+.md-input:focus~.md-label,
+.md-input:not(:placeholder-shown)~.md-label,
+.md-input:-webkit-autofill~.md-label {
     top: -10px;
     left: 14px;
     font-size: 13px;
@@ -229,8 +234,8 @@ a:hover {
 
 /* Fix for Chrome autofill background turning white/yellow */
 .md-input:-webkit-autofill,
-.md-input:-webkit-autofill:hover, 
-.md-input:-webkit-autofill:focus, 
+.md-input:-webkit-autofill:hover,
+.md-input:-webkit-autofill:focus,
 .md-input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0 30px var(--md-sys-color-surface) inset !important;
     -webkit-text-fill-color: var(--md-sys-color-on-surface) !important;
@@ -265,11 +270,34 @@ a:hover {
 }
 
 /* Utility Classes */
-.hidden { display: none !important; }
-.d-flex { display: flex; }
-.flex-column { flex-direction: column; }
-.align-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.mt-1 { margin-top: 1.5rem; }
-.mb-1 { margin-bottom: 1.5rem; }
-.w-100 { width: 100%; }
+.hidden {
+    display: none !important;
+}
+
+.d-flex {
+    display: flex;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+
+.align-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.mt-1 {
+    margin-top: 1.5rem;
+}
+
+.mb-1 {
+    margin-bottom: 1.5rem;
+}
+
+.w-100 {
+    width: 100%;
+}

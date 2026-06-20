@@ -2,13 +2,13 @@
 
 A comprehensive, full-stack Event Management System built with Java, Javalin, PostgreSQL, and modern Vanilla HTML/CSS/JS. This platform supports distinct roles (Participant, Coordinator, Admin) and features advanced database mechanisms for high consistency and automated workflow management.
 
-## 🏗 Architecture
+##  Architecture
 
 The project is structured into two main components:
 - **Backend**: A RESTful API built in Java using the highly performant [Javalin](https://javalin.io/) framework. It utilizes raw JDBC for direct, optimized database communication without ORM overhead.
 - **Frontend**: A sleek, responsive, and minimalist web interface built with vanilla HTML, CSS, and JavaScript. It features dynamic rendering, dark mode, and token-based authentication.
 
-## ✨ Features
+##  Features
 
 - **Role-Based Access Control (RBAC)**: Distinct dashboards and permissions for `ADMIN`, `COORDINATOR`, and `PARTICIPANT`.
 - **Event Lifecycle Management**: Create, update, view, and end events.
@@ -18,7 +18,7 @@ The project is structured into two main components:
 
 ---
 
-## 🗄️ Advanced Database Management System (ADBMS)
+##  Advanced Database Management System (ADBMS)
 
 This project heavily leverages advanced PostgreSQL features to ensure data integrity, atomicity, and to offload complex business logic directly to the database layer. 
 
@@ -61,7 +61,7 @@ Strategic B-Tree indexes are applied to frequently queried columns to ensure rap
 
 ---
 
-## 🚀 Running the Project
+## Running the Project
 
 ### Prerequisites
 - Java 17+
