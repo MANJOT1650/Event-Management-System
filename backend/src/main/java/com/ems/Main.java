@@ -29,6 +29,25 @@ public class Main {
         UserController userController = new UserController();
         try (java.sql.Connection conn = com.ems.database.DatabaseConnection.getConnection();
              java.sql.Statement stmt = conn.createStatement()) {
+            boolean tablesExist = false;
+            try {
+                stmt.executeQuery("SELECT 1 FROM Roles LIMIT 1");
+                tablesExist = true;
+            } catch (Exception e) {}
+
+            if (!tablesExist) {
+                System.out.println("Tables not found! Initializing database schema...");
+                try (java.io.InputStream is = Main.class.getResourceAsStream("/schema.sql")) {
+                    if (is != null) {
+                        String sql = new String(is.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                        stmt.execute(sql);
+                        System.out.println("Database schema initialized successfully!");
+                    } else {
+                        System.out.println("schema.sql not found in resources!");
+                    }
+                }
+            }
+
             try {
                 stmt.execute("ALTER TABLE Events ADD COLUMN updated_by INT REFERENCES Users(user_id) ON DELETE SET NULL");
                 System.out.println("Column updated_by added.");
@@ -64,6 +83,26 @@ public class Main {
                     path("/auth", () -> {
                         post("/login", authController::login, AppRole.ANYONE);
                         post("/register", authController::register, AppRole.ANYONE);
+                    });
+                    
+                    path("/dev", () -> {
+                        get("/reset-db", ctx -> {
+                            try (java.sql.Connection conn = com.ems.database.DatabaseConnection.getConnection();
+                                 java.sql.Statement stmt = conn.createStatement()) {
+                                stmt.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
+                                try (java.io.InputStream is = Main.class.getResourceAsStream("/schema.sql")) {
+                                    if (is != null) {
+                                        String sql = new String(is.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                                        stmt.execute(sql);
+                                        ctx.status(200).json("{\"message\": \"Database reset successfully!\"}");
+                                    } else {
+                                        ctx.status(500).json("{\"message\": \"schema.sql not found!\"}");
+                                    }
+                                }
+                            } catch (Exception e) {
+                                ctx.status(500).json("{\"message\": \"Error: " + e.getMessage() + "\"}");
+                            }
+                        }, AppRole.ANYONE);
                     });
                     
                     path("/venues", () -> {
