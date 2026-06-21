@@ -124,8 +124,9 @@ public class Main {
             ctx.status(500).json("{\"message\": \"Internal Server Error: " + e.getMessage() + "\"}");
         });
 
-        app.start(7070);
+        int port = System.getenv("PORT") != null ? Integer.parseInt(System.getenv("PORT")) : 7070;
+        app.start(port);
 
-        System.out.println("EMS Backend Server started on http://localhost:7070");
+        System.out.println("EMS Backend Server started on port " + port);
     }
 }
