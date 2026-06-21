@@ -1,3 +1,30 @@
+services:
+  - type: web
+    name: event-management-backend
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: ems-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ems-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: ems-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: ems-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: ems-db
+          property: password
 
 databases:
   - name: ems-db
