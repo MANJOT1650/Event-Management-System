@@ -53,6 +53,7 @@ public class Main {
         // Start Javalin app
         Javalin app = Javalin.create(config -> {
             config.bundledPlugins.enableCors(cors -> cors.addRule(it -> it.anyHost()));
+            config.bundledPlugins.enableHttpAllowedMethodsOnRoutes();
             try {
                 config.staticFiles.add("../frontend", Location.EXTERNAL); // Serve frontend static files locally
             } catch (Exception e) {
