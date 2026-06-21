@@ -1,5 +1,5 @@
 // Change this to your Render backend URL after deployment
-const PRODUCTION_API_URL = 'https://event-management-backend.onrender.com/api';
+const PRODUCTION_API_URL = 'https://event-management-backend-o4jd.onrender.com/api';
 const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
     ? 'http://localhost:7070/api' 
     : PRODUCTION_API_URL;
