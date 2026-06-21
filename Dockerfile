@@ -11,7 +11,7 @@ COPY backend/src ./backend/src/
 
 # Build the backend
 WORKDIR /app/backend
-RUN mvn clean package -DskipTests
+RUN MAVEN_OPTS="-Xmx256m" mvn clean package -DskipTests
 
 # Run stage
 FROM eclipse-temurin:17-jre
