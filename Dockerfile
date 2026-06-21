@@ -28,4 +28,4 @@ EXPOSE 7070
 
 # Set working directory to backend so that ../frontend works
 WORKDIR /app/backend
-ENTRYPOINT ["java", "-cp", "app.jar", "com.ems.Main"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
