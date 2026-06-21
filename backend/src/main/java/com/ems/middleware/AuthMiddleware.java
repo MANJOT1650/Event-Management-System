@@ -19,6 +19,11 @@ public class AuthMiddleware {
             return;
         }
 
+        // Bypass auth for preflight CORS requests
+        if ("OPTIONS".equals(ctx.method().name())) {
+            return;
+        }
+
         String authHeader = ctx.header("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new io.javalin.http.UnauthorizedResponse("Missing or invalid token");
