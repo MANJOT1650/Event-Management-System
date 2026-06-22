@@ -1,7 +1,6 @@
-// Change this to your Render backend URL after deployment
 const PRODUCTION_API_URL = 'https://event-management-backend-o4jd.onrender.com/api';
-const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') 
-    ? 'http://localhost:7070/api' 
+const API_BASE_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:7070/api'
     : PRODUCTION_API_URL;
 
 const api = {
@@ -21,7 +20,7 @@ const api = {
         try {
             const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
             const contentType = response.headers.get('content-type');
-            
+
             let data;
             if (contentType && contentType.includes('application/json')) {
                 data = await response.json();
@@ -38,7 +37,7 @@ const api = {
                 }
                 throw new Error(data.message || data || 'API Error');
             }
-            
+
             return data;
         } catch (error) {
             console.error('API Request failed:', error);
@@ -62,7 +61,7 @@ function showSnackbar(message) {
     }
     snackbar.textContent = message;
     snackbar.className = "show";
-    setTimeout(function(){ snackbar.className = snackbar.className.replace("show", ""); }, 3000);
+    setTimeout(function () { snackbar.className = snackbar.className.replace("show", ""); }, 3000);
 }
 
 function initTheme() {
@@ -84,7 +83,7 @@ function checkAuth(allowedRoles = []) {
         return null;
     }
     const user = JSON.parse(userStr);
-    
+
     if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
         showSnackbar("You do not have permission to view this page.");
         setTimeout(() => window.location.href = '/dashboard.html', 1500);
